@@ -84,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
 
-                if(!sharedPrefs.contains("marches")) {
+                if(!sharedPrefs.contains("matches")) {
                     int i = 0;
                     String matchString = "";
                     for (String key : players.keySet()) {
