@@ -9,4 +9,5 @@
     <color name="white">#FFFFFFFF</color>
     <color name="green">#00FF00</color>
     <color name="cloud">#C5C6D0</color>
+    <color name="clear">#00000000</color>
 </resources>

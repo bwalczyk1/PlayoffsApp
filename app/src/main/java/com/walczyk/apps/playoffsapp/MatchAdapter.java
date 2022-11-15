@@ -66,11 +66,11 @@ public class MatchAdapter extends ArrayAdapter{
             player2View.setText(player2Name);
             try {
                 if (players.get(player1Name) > players.get(player2Name)){
-                    player1View.setBackgroundColor(_context.getResources().getColor(R.color.green));
+                    player1View.setBackground(_context.getResources().getDrawable(R.drawable.round_left_green));
                     player1View.setTextColor(_context.getResources().getColor(R.color.white));
                 }
                 else if (players.get(player2Name) > players.get(player1Name)){
-                    player2View.setBackgroundColor(_context.getResources().getColor(R.color.green));
+                    player2View.setBackground(_context.getResources().getDrawable(R.drawable.round_right_green));
                     player2View.setTextColor(_context.getResources().getColor(R.color.white));
                 }
 
@@ -80,9 +80,9 @@ public class MatchAdapter extends ArrayAdapter{
             player1View.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    player1View.setBackgroundColor(_context.getResources().getColor(R.color.green));
+                    player1View.setBackground(_context.getResources().getDrawable(R.drawable.round_left_green));
                     player1View.setTextColor(_context.getResources().getColor(R.color.white));
-                    player2View.setBackgroundColor(_context.getResources().getColor(R.color.white));
+                    player2View.setBackground(_context.getResources().getDrawable(R.drawable.round_right_white));
                     player2View.setTextColor(_context.getResources().getColor(R.color.green));
                     int player1Score = players.get(player1Name);
                     int player2Score = players.get(player2Name);
@@ -95,9 +95,9 @@ public class MatchAdapter extends ArrayAdapter{
             player2View.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    player2View.setBackgroundColor(_context.getResources().getColor(R.color.green));
+                    player2View.setBackground(_context.getResources().getDrawable(R.drawable.round_right_green));
                     player2View.setTextColor(_context.getResources().getColor(R.color.white));
-                    player1View.setBackgroundColor(_context.getResources().getColor(R.color.white));
+                    player1View.setBackground(_context.getResources().getDrawable(R.drawable.round_left_white));
                     player1View.setTextColor(_context.getResources().getColor(R.color.green));
                     int player1Score = players.get(player1Name);
                     int player2Score = players.get(player2Name);

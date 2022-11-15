@@ -79,12 +79,19 @@ public class MainActivity extends AppCompatActivity {
         confirmButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(players.size() == 0){
-                    Toast.makeText(MainActivity.this, "Add players to start matches", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
                 if(!sharedPrefs.contains("matches")) {
+                    int playersNumber = players.size();
+                    if(playersNumber < 2){
+                        Toast.makeText(MainActivity.this, "Add players to start matches", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    while(playersNumber > 1){
+                        if(playersNumber % 2 == 1){
+                            Toast.makeText(MainActivity.this, "Number of players must be a power of 2", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                        playersNumber /= 2;
+                    }
                     int i = 0;
                     String matchString = "";
                     for (String key : players.keySet()) {
@@ -152,6 +159,7 @@ public class MainActivity extends AppCompatActivity {
                         points += jsonObject.getInt(key);
                         players.put(key, jsonObject.getInt(key));
                     }
+                    roundsFinished = 0;
                     while(points != 0 && points>= numberOfPlayers/2){
                         roundsFinished += 1;
                         numberOfPlayers -= numberOfPlayers/2;
