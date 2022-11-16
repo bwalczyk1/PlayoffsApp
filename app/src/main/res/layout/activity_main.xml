@@ -8,38 +8,45 @@
     android:orientation="vertical"
     tools:context=".MainActivity"
     android:gravity="center">
-    <LinearLayout
-        android:id="@+id/players_layout"
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipe_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:layout_weight="1"/>
+        android:layout_weight="1">
+        <LinearLayout
+            android:id="@+id/players_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"/>
+
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
+<!--        <Button-->
+<!--            android:padding="5dp"-->
+<!--            android:layout_margin="10dp"-->
+<!--            android:text="Add player"-->
+<!--            android:id="@+id/add_btn"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_weight="1"/>-->
         <Button
             android:padding="5dp"
             android:layout_margin="10dp"
-            android:text="Add player"
-            android:id="@+id/add_btn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-        <Button
-            android:padding="5dp"
-            android:layout_margin="10dp"
-            android:text="Confirm"
+            android:text="CONFIRM"
             android:id="@+id/confirm_btn"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_weight="1"/>
-        <Button
-            android:padding="5dp"
-            android:layout_margin="10dp"
-            android:text="Restart"
-            android:id="@+id/restart_btn"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="1"/>
+<!--        <Button-->
+<!--            android:padding="5dp"-->
+<!--            android:layout_margin="10dp"-->
+<!--            android:text="Restart"-->
+<!--            android:id="@+id/restart_btn"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="match_parent"-->
+<!--            android:layout_weight="1"/>-->
     </LinearLayout>
   </LinearLayout>

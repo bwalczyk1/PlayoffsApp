@@ -1,10 +1,6 @@
 package com.walczyk.apps.playoffsapp;
 
-import static android.content.Context.MODE_PRIVATE;
-import static android.content.Context.PRINT_SERVICE;
-
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,24 +10,17 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.GenericTypeIndicator;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 
 public class MatchAdapter extends ArrayAdapter{
-    private ArrayList<String> matches = new ArrayList<>();
+    private ArrayList<String> matches;
     private Context _context;
     private int _resource;
     private HashMap<String, Integer> players = new HashMap<>();
@@ -45,30 +34,6 @@ public class MatchAdapter extends ArrayAdapter{
         _resource = resource;
 
         playersData = FirebaseDatabase.getInstance("https://playoffsapp-fa522-default-rtdb.europe-west1.firebasedatabase.app/").getReference("players");
-
-
-        try {
-            SharedPreferences sharedPrefs = _context.getSharedPreferences("appPrefs", MODE_PRIVATE);
-            String playersString = sharedPrefs.getString("players", "");
-            JSONObject playersObject = new JSONObject(playersString);
-            Iterator<String> keysItr = playersObject.keys();
-            while (keysItr.hasNext()) {
-                String key = keysItr.next();
-                int playerScore = playersObject.getInt(key);
-                players.put(key, playerScore);
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        playersData.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DataSnapshot> task) {
-                if(task.isSuccessful()){
-                    GenericTypeIndicator<HashMap<String, Integer>> typeIndicator = new GenericTypeIndicator<HashMap<String, Integer>>() {};
-                    players = task.getResult().getValue(typeIndicator);
-                }
-            }
-        });
     }
 
     @NonNull
@@ -84,22 +49,29 @@ public class MatchAdapter extends ArrayAdapter{
             TextView player2View = convertView.findViewById(R.id.player2_tv);
             String player2Name = matchPlayers.get(1);
             player2View.setText(player2Name);
-            try {
-                if (players.get(player1Name) > players.get(player2Name)){
-                    player1View.setBackground(_context.getResources().getDrawable(R.drawable.round_left_green));
-                    player1View.setTextColor(_context.getResources().getColor(R.color.white));
-                }
-                else if (players.get(player2Name) > players.get(player1Name)){
-                    player2View.setBackground(_context.getResources().getDrawable(R.drawable.round_right_green));
-                    player2View.setTextColor(_context.getResources().getColor(R.color.white));
+
+            playersData.get().addOnCompleteListener(task -> {
+                if(!task.isSuccessful())
+                    return;
+                if(players.size() == 0) {
+                    GenericTypeIndicator<HashMap<String, Integer>> typeIndicator = new GenericTypeIndicator<HashMap<String, Integer>>() {};
+                    players = task.getResult().getValue(typeIndicator);
                 }
 
-            }catch (Exception e){
+                try {
+                    if (players.get(player1Name) > players.get(player2Name)){
+                        player1View.setBackground(_context.getResources().getDrawable(R.drawable.round_left_green));
+                        player1View.setTextColor(_context.getResources().getColor(R.color.white));
+                    }
+                    else if (players.get(player2Name) > players.get(player1Name)){
+                        player2View.setBackground(_context.getResources().getDrawable(R.drawable.round_right_green));
+                        player2View.setTextColor(_context.getResources().getColor(R.color.white));
+                    }
 
-            }
-            player1View.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
+                }catch (Exception e){
+
+                }
+                player1View.setOnClickListener(v -> {
                     player1View.setBackground(_context.getResources().getDrawable(R.drawable.round_left_green));
                     player1View.setTextColor(_context.getResources().getColor(R.color.white));
                     player2View.setBackground(_context.getResources().getDrawable(R.drawable.round_right_white));
@@ -109,12 +81,9 @@ public class MatchAdapter extends ArrayAdapter{
                     if(player2Score > player1Score)
                         players.put(player2Name, player2Score - 1);
                     players.put(player1Name, player1Score + 1);
-                    updatePreferences();
-                }
-            });
-            player2View.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
+                    playersData.setValue(players);
+                });
+                player2View.setOnClickListener(v -> {
                     player2View.setBackground(_context.getResources().getDrawable(R.drawable.round_right_green));
                     player2View.setTextColor(_context.getResources().getColor(R.color.white));
                     player1View.setBackground(_context.getResources().getDrawable(R.drawable.round_left_white));
@@ -124,21 +93,10 @@ public class MatchAdapter extends ArrayAdapter{
                     if(player1Score > player2Score)
                         players.put(player1Name, player1Score - 1);
                     players.put(player2Name, player2Score + 1);
-                    updatePreferences();
-                }
+                    playersData.setValue(players);
+                });
             });
         }
         return convertView;
-    }
-
-    public void updatePreferences(){
-        JSONObject playersObject = new JSONObject(players);
-        String playersString = playersObject.toString();
-        SharedPreferences sharedPrefs = _context.getSharedPreferences("appPrefs", MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPrefs.edit();
-        editor.putString("players", playersString);
-        editor.apply();
-
-        playersData.setValue(players);
     }
 }

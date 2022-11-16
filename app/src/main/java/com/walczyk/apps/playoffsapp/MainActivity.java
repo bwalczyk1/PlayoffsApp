@@ -1,43 +1,27 @@
 package com.walczyk.apps.playoffsapp;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.text.Layout;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.GenericTypeIndicator;
 
-import org.json.JSONException;
-import org.json.JSONObject;
 
-import java.lang.reflect.Array;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.zip.Inflater;
 
 public class MainActivity extends AppCompatActivity {
     private Map<String, Integer> players = new HashMap<>();
@@ -45,7 +29,6 @@ public class MainActivity extends AppCompatActivity {
     private LinearLayout playersLayout;
     private int roundsFinished;
     private LayoutInflater inflater;
-    private SharedPreferences sharedPrefs;
 
     private DatabaseReference playersData;
     private DatabaseReference matchesData;
@@ -63,97 +46,78 @@ public class MainActivity extends AppCompatActivity {
         playersData = FirebaseDatabase.getInstance("https://playoffsapp-fa522-default-rtdb.europe-west1.firebasedatabase.app/").getReference("players");
         matchesData = FirebaseDatabase.getInstance("https://playoffsapp-fa522-default-rtdb.europe-west1.firebasedatabase.app/").getReference("matches");
 
-        Button addBtn = findViewById(R.id.add_btn);
         Button confirmButton = findViewById(R.id.confirm_btn);
-        Button restartButton = findViewById(R.id.restart_btn);
-        addBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity.this);
-                alert.setTitle("New player");
-                alert.setMessage("Add new player");
-                EditText input = new EditText(MainActivity.this);
-                input.setHint("Name");
-                alert.setView(input);
-                alert.setPositiveButton("ADD", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        String playerName = input.getText().toString();
-                        players.put(playerName, 0);
-                        JSONObject playersObject = new JSONObject(players);
-                        String playersString = playersObject.toString();
-                        SharedPreferences.Editor editor = sharedPrefs.edit();
-                        editor.putString("players", playersString);
-                        editor.apply();
+        playersLayout.setOnLongClickListener(v -> {
+            if(matches != null && matches.size() != 0)
+                return false;
 
-                        playersData.setValue(players);
-
-                        addPlayerLayout(playerName, 0);
-                    }
-                });
-                alert.show();
-            }
-        });
-        confirmButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(confirmButton.getText().toString().equals("CONFIRM")) {
-                    int playersNumber = players.size();
-                    if(playersNumber < 2){
-                        Toast.makeText(MainActivity.this, "Add players to start matches", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    while(playersNumber > 1){
-                        if(playersNumber % 2 == 1){
-                            Toast.makeText(MainActivity.this, "Number of players must be a power of 2", Toast.LENGTH_SHORT).show();
-                            return;
-                        }
-                        playersNumber /= 2;
-                    }
-                    int i = 0;
-                    String matchString = "";
-                    for (String key : players.keySet()) {
-                        if (i % 2 == 0) {
-                            matchString = key + "-";
-                        } else {
-                            matchString += key;
-                            matches.add(matchString);
-                        }
-                        i++;
-                    }
-                    String matchesString = String.join(",", matches);
-                    SharedPreferences.Editor editor = sharedPrefs.edit();
-                    editor.putString("matches", matchesString);
-                    editor.apply();
-
-                    DatabaseReference newMatches = matchesData.child("0");;
-                    newMatches.setValue(matches);
-
-                    addBtn.setVisibility(View.GONE);
-                    confirmButton.setText("MATCHES");
-                }
-                Intent intent = new Intent(MainActivity.this, MatchesActivity.class);
-                startActivity(intent);
-            }
-        });
-        restartButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                players = new HashMap<>();
-                matches = new ArrayList<>();
-                SharedPreferences.Editor editor = sharedPrefs.edit();
-                editor.remove("players");
-                editor.remove("matches");
-                editor.apply();
+            AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity.this);
+            alert.setTitle("New player");
+            alert.setMessage("Add new player");
+            EditText input = new EditText(MainActivity.this);
+            input.setHint("Name");
+            alert.setView(input);
+            alert.setPositiveButton("ADD", (dialog, which) -> {
+                String playerName = input.getText().toString();
+                players.put(playerName, 0);
 
                 playersData.setValue(players);
-                matchesData.setValue(matches);
 
-                roundsFinished = 0;
-                playersLayout.removeAllViews();
-                addBtn.setVisibility(View.VISIBLE);
-                confirmButton.setText("CONFIRM");
+                addPlayerLayout(playerName, 0);
+            });
+            alert.show();
+            return false;
+        });
+
+        confirmButton.setOnClickListener(v -> {
+            if(confirmButton.getText().toString().equals("CONFIRM")) {
+                int playersNumber = players.size();
+                if(playersNumber < 2){
+                    Toast.makeText(MainActivity.this, "Add players to start matches", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                while(playersNumber > 1){
+                    if(playersNumber % 2 == 1){
+                        Toast.makeText(MainActivity.this, "Number of players must be a power of 2", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    playersNumber /= 2;
+                }
+                int i = 0;
+                String matchString = "";
+                for (String key : players.keySet()) {
+                    if (i % 2 == 0) {
+                        matchString = key + "-";
+                    } else {
+                        matchString += key;
+                        matches.add(matchString);
+                    }
+                    i++;
+                }
+
+                DatabaseReference newMatches = matchesData.child("0");;
+                newMatches.setValue(matches);
+
+                confirmButton.setText("MATCHES");
             }
+            Intent intent = new Intent(MainActivity.this, MatchesActivity.class);
+            startActivity(intent);
+        });
+
+        SwipeRefreshLayout swipeLayout = findViewById(R.id.swipe_layout);
+
+        swipeLayout.setOnRefreshListener(() -> {
+            players = new HashMap<>();
+            matches = new ArrayList<>();
+
+            playersData.setValue(players);
+            matchesData.setValue(matches);
+
+            roundsFinished = 0;
+            playersLayout.removeAllViews();
+            confirmButton.setText("CONFIRM");
+
+            swipeLayout.setRefreshing(false);
         });
     }
 
@@ -170,53 +134,46 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
-        sharedPrefs = getApplicationContext().getSharedPreferences("appPrefs", MODE_PRIVATE);
-        if(sharedPrefs.contains("players")){
-            String playersString = sharedPrefs.getString("players", (new JSONObject()).toString());
-            if(!playersString.equals((new JSONObject()).toString())){
-                try {
-                    JSONObject jsonObject = new JSONObject(playersString);
-                    Iterator<String> keysItr = jsonObject.keys();
-                    int numberOfPlayers = 0;
-                    int points = 0;
-                    while (keysItr.hasNext()) {
-                        String key = keysItr.next();
-                        numberOfPlayers += 1;
-                        points += jsonObject.getInt(key);
-                        players.put(key, jsonObject.getInt(key));
-                    }
-                    playersData.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
-                        @Override
-                        public void onComplete(@NonNull Task<DataSnapshot> task) {
-                            if(task.isSuccessful()){
-                                GenericTypeIndicator<HashMap<String, Integer>> typeIndicator = new GenericTypeIndicator<HashMap<String, Integer>>() {};
-                                players = task.getResult().getValue(typeIndicator);
-                            }
-                        }
-                    });
-                    roundsFinished = 0;
-                    while(points != 0 && points>= numberOfPlayers/2){
-                        roundsFinished += 1;
-                        numberOfPlayers -= numberOfPlayers/2;
-                        points -= numberOfPlayers;
-                    }
-                    if(sharedPrefs.contains("matches")) {
-                        findViewById(R.id.add_btn).setVisibility(View.GONE);
-                        ((Button)findViewById(R.id.confirm_btn)).setText("MATCHES");
-                    }
-                    playersLayout.removeAllViews();
-                    for (int i = roundsFinished + 1; i >= 0; i--) {
-                        for(String key : players.keySet()){
-                            int playerScore = players.get(key);
-                            if(playerScore == i){
-                                addPlayerLayout(key, playerScore);
-                            }
-                        }
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
+        playersData.get().addOnCompleteListener(task -> {
+            if(!task.isSuccessful())
+                return;
+            GenericTypeIndicator<HashMap<String, Integer>> typeIndicator = new GenericTypeIndicator<HashMap<String, Integer>>() {};
+            players = task.getResult().getValue(typeIndicator);
+            if(players == null) {
+                players = new HashMap<>();
+                return;
+            }
+            int numberOfPlayers = players.size();
+            int points = 0;
+            ArrayList<Integer> playerScores = new ArrayList<Integer>(players.values());
+            for(int i = 0; i < numberOfPlayers; i++)
+                points += playerScores.get(i);
+
+            roundsFinished = 0;
+            while(points != 0 && points>= numberOfPlayers/2){
+                roundsFinished += 1;
+                numberOfPlayers -= numberOfPlayers/2;
+                points -= numberOfPlayers;
+            }
+            matchesData.get().addOnCompleteListener(task1 -> {
+                if(!task1.isSuccessful())
+                    return;
+                GenericTypeIndicator<ArrayList<ArrayList<String>>> typeIndicator1 = new GenericTypeIndicator<ArrayList<ArrayList<String>>>() {};
+                ArrayList<ArrayList<String>> matchesHistory = task1.getResult().getValue(typeIndicator1);
+                if(matchesHistory == null)
+                    return;
+                matches = matchesHistory.get(matchesHistory.size() - 1);
+                if(matches.size() != 0)
+                    ((Button)findViewById(R.id.confirm_btn)).setText("MATCHES");
+            });
+            playersLayout.removeAllViews();
+            for (int i = roundsFinished + 1; i >= 0; i--) {
+                for(String key : players.keySet()){
+                    int playerScore = players.get(key);
+                    if(playerScore == i)
+                        addPlayerLayout(key, playerScore);
                 }
             }
-        }
+        });
     }
 }
