@@ -1,5 +1,6 @@
 package com.walczyk.apps.playoffsapp;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -17,6 +18,13 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.GenericTypeIndicator;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -39,6 +47,9 @@ public class MainActivity extends AppCompatActivity {
     private LayoutInflater inflater;
     private SharedPreferences sharedPrefs;
 
+    private DatabaseReference playersData;
+    private DatabaseReference matchesData;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +58,10 @@ public class MainActivity extends AppCompatActivity {
 
         inflater = getLayoutInflater();
         playersLayout = findViewById(R.id.players_layout);
+
+
+        playersData = FirebaseDatabase.getInstance("https://playoffsapp-fa522-default-rtdb.europe-west1.firebasedatabase.app/").getReference("players");
+        matchesData = FirebaseDatabase.getInstance("https://playoffsapp-fa522-default-rtdb.europe-west1.firebasedatabase.app/").getReference("matches");
 
         Button addBtn = findViewById(R.id.add_btn);
         Button confirmButton = findViewById(R.id.confirm_btn);
@@ -70,6 +85,9 @@ public class MainActivity extends AppCompatActivity {
                         SharedPreferences.Editor editor = sharedPrefs.edit();
                         editor.putString("players", playersString);
                         editor.apply();
+
+                        playersData.setValue(players);
+
                         addPlayerLayout(playerName, 0);
                     }
                 });
@@ -79,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
         confirmButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(!sharedPrefs.contains("matches")) {
+                if(confirmButton.getText().toString().equals("CONFIRM")) {
                     int playersNumber = players.size();
                     if(playersNumber < 2){
                         Toast.makeText(MainActivity.this, "Add players to start matches", Toast.LENGTH_SHORT).show();
@@ -107,6 +125,10 @@ public class MainActivity extends AppCompatActivity {
                     SharedPreferences.Editor editor = sharedPrefs.edit();
                     editor.putString("matches", matchesString);
                     editor.apply();
+
+                    DatabaseReference newMatches = matchesData.child("0");;
+                    newMatches.setValue(matches);
+
                     addBtn.setVisibility(View.GONE);
                     confirmButton.setText("MATCHES");
                 }
@@ -123,10 +145,14 @@ public class MainActivity extends AppCompatActivity {
                 editor.remove("players");
                 editor.remove("matches");
                 editor.apply();
+
+                playersData.setValue(players);
+                matchesData.setValue(matches);
+
                 roundsFinished = 0;
                 playersLayout.removeAllViews();
                 addBtn.setVisibility(View.VISIBLE);
-                confirmButton.setText("MATCHES");
+                confirmButton.setText("CONFIRM");
             }
         });
     }
@@ -159,6 +185,15 @@ public class MainActivity extends AppCompatActivity {
                         points += jsonObject.getInt(key);
                         players.put(key, jsonObject.getInt(key));
                     }
+                    playersData.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<DataSnapshot> task) {
+                            if(task.isSuccessful()){
+                                GenericTypeIndicator<HashMap<String, Integer>> typeIndicator = new GenericTypeIndicator<HashMap<String, Integer>>() {};
+                                players = task.getResult().getValue(typeIndicator);
+                            }
+                        }
+                    });
                     roundsFinished = 0;
                     while(points != 0 && points>= numberOfPlayers/2){
                         roundsFinished += 1;

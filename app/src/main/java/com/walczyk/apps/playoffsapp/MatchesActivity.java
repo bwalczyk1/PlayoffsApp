@@ -14,6 +14,13 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.GenericTypeIndicator;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -27,6 +34,7 @@ public class MatchesActivity extends AppCompatActivity {
     private ListView matchList;
     private HashMap<Integer, String> winners = new HashMap<>();
     private MatchAdapter matchAdapter;
+    private DatabaseReference matchesData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,12 +50,27 @@ public class MatchesActivity extends AppCompatActivity {
         SharedPreferences sharedPrefs = getApplicationContext().getSharedPreferences("appPrefs", MODE_PRIVATE);
         String matchesString = sharedPrefs.getString("matches", "");
         matches = new ArrayList<>(Arrays.asList(matchesString.split(",")));
-        matchAdapter = new MatchAdapter(
-                MatchesActivity.this,
-                R.layout.match_layout,
-                matches
-        );
-        matchList.setAdapter(matchAdapter);
+
+        matchesData = FirebaseDatabase.getInstance("https://playoffsapp-fa522-default-rtdb.europe-west1.firebasedatabase.app/").getReference("matches");
+
+
+        matchesData.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DataSnapshot> task) {
+                if(task.isSuccessful()){
+                    GenericTypeIndicator<ArrayList<ArrayList<String>>> typeIndicator = new GenericTypeIndicator<ArrayList<ArrayList<String>>>() {};
+                    ArrayList<ArrayList<String>> matchesHistory = task.getResult().getValue(typeIndicator);
+                    matches = matchesHistory.get(matchesHistory.size() - 1);
+                    matchAdapter = new MatchAdapter(
+                            MatchesActivity.this,
+                            R.layout.match_layout,
+                            matches
+                    );
+                    matchList.setAdapter(matchAdapter);
+                }
+            }
+        });
+
 
         Button roundBtn = findViewById(R.id.round_btn);
         roundBtn.setOnClickListener(new View.OnClickListener() {
@@ -80,14 +103,26 @@ public class MatchesActivity extends AppCompatActivity {
                 SharedPreferences.Editor editor = sharedPrefs.edit();
                 editor.putString("matches", matchesString);
                 editor.apply();
-                matches = newMatches;
-                matchAdapter.notifyDataSetChanged();
-                matchAdapter = new MatchAdapter(
-                        MatchesActivity.this,
-                        R.layout.match_layout,
-                        matches
-                );
-                matchList.setAdapter(matchAdapter);
+
+                matchesData.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DataSnapshot> task) {
+                        if(task.isSuccessful()){
+                            GenericTypeIndicator<ArrayList<ArrayList<String>>> typeIndicator = new GenericTypeIndicator<ArrayList<ArrayList<String>>>() {};
+                            ArrayList<ArrayList<String>> matchesHistory = task.getResult().getValue(typeIndicator);
+                            DatabaseReference newMatchesData = matchesData.child(String.valueOf(matchesHistory.size()));
+                            newMatchesData.setValue(newMatches);
+                            matches = newMatches;
+                            matchAdapter.notifyDataSetChanged();
+                            matchAdapter = new MatchAdapter(
+                                    MatchesActivity.this,
+                                    R.layout.match_layout,
+                                    matches
+                            );
+                            matchList.setAdapter(matchAdapter);
+                        }
+                    }
+                });
             }
         });
     }

@@ -14,6 +14,13 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.GenericTypeIndicator;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -28,6 +35,7 @@ public class MatchAdapter extends ArrayAdapter{
     private Context _context;
     private int _resource;
     private HashMap<String, Integer> players = new HashMap<>();
+    private DatabaseReference playersData;
 
     public MatchAdapter(@NonNull Context context, int resource, @NonNull List objects) {
         super(context, resource, objects);
@@ -35,6 +43,9 @@ public class MatchAdapter extends ArrayAdapter{
         matches = (ArrayList<String>) objects;
         _context = context;
         _resource = resource;
+
+        playersData = FirebaseDatabase.getInstance("https://playoffsapp-fa522-default-rtdb.europe-west1.firebasedatabase.app/").getReference("players");
+
 
         try {
             SharedPreferences sharedPrefs = _context.getSharedPreferences("appPrefs", MODE_PRIVATE);
@@ -49,6 +60,15 @@ public class MatchAdapter extends ArrayAdapter{
         } catch (JSONException e) {
             e.printStackTrace();
         }
+        playersData.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DataSnapshot> task) {
+                if(task.isSuccessful()){
+                    GenericTypeIndicator<HashMap<String, Integer>> typeIndicator = new GenericTypeIndicator<HashMap<String, Integer>>() {};
+                    players = task.getResult().getValue(typeIndicator);
+                }
+            }
+        });
     }
 
     @NonNull
@@ -118,5 +138,7 @@ public class MatchAdapter extends ArrayAdapter{
         SharedPreferences.Editor editor = sharedPrefs.edit();
         editor.putString("players", playersString);
         editor.apply();
+
+        playersData.setValue(players);
     }
 }

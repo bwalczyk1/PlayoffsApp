@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "448243364627",
+    "project_id": "playoffsapp-fa522",
+    "storage_bucket": "playoffsapp-fa522.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:448243364627:android:525b5653d22051d07860e6",
+        "android_client_info": {
+          "package_name": "com.walczyk.apps.playoffsapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "448243364627-6mis3t2hutu0gb8n08t6ioc3mo83upoc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBfHoTkQv8frv10rW7dRbcM4hUyacmgIeU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "448243364627-6mis3t2hutu0gb8n08t6ioc3mo83upoc.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
