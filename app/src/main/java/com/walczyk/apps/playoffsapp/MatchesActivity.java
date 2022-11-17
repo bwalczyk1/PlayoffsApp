@@ -2,8 +2,11 @@ package com.walczyk.apps.playoffsapp;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
@@ -12,6 +15,9 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.GenericTypeIndicator;
@@ -75,7 +81,36 @@ public class MatchesActivity extends AppCompatActivity {
                     Toast.makeText(MatchesActivity.this, "Not all results given", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                if(i % 2 == 0)
+                if (matchList.getCount() == 1) {
+                    String finalWinner = winner;
+                    matchesData.get().addOnCompleteListener(task -> {
+                        if(task.isSuccessful()){
+                            GenericTypeIndicator<ArrayList<ArrayList<String>>> typeIndicator = new GenericTypeIndicator<ArrayList<ArrayList<String>>>() {};
+                            ArrayList<ArrayList<String>> matchesHistory = task.getResult().getValue(typeIndicator);
+                            DatabaseReference newMatchesData = matchesData.child(String.valueOf(matchesHistory.size()));
+                            ArrayList<String> result = new ArrayList<>();
+                            result.add(finalWinner);
+                            newMatchesData.setValue(result);
+                        }
+                    });
+                    matches = new ArrayList<>();
+                    matchAdapter.notifyDataSetChanged();
+                    matchAdapter = new MatchAdapter(
+                            MatchesActivity.this,
+                            R.layout.match_layout,
+                            matches
+                    );
+                    matchList.setAdapter(matchAdapter);
+
+                    AlertDialog alertDialog = new AlertDialog.Builder(MatchesActivity.this).create();
+                    alertDialog.setTitle("Winner!");
+                    alertDialog.setMessage(winner + " is the WINNER!");
+                    alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                            (dialog, which) -> finish());
+                    alertDialog.show();
+                    return;
+                }
+                else if(i % 2 == 0)
                     newMatch = winner + "-";
                 else{
                     newMatch += winner;

@@ -6,6 +6,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -115,6 +116,7 @@ public class MainActivity extends AppCompatActivity {
 
             roundsFinished = 0;
             playersLayout.removeAllViews();
+            confirmButton.setVisibility(View.VISIBLE);
             confirmButton.setText("CONFIRM");
 
             swipeLayout.setRefreshing(false);
@@ -163,8 +165,12 @@ public class MainActivity extends AppCompatActivity {
                 if(matchesHistory == null)
                     return;
                 matches = matchesHistory.get(matchesHistory.size() - 1);
-                if(matches.size() != 0)
-                    ((Button)findViewById(R.id.confirm_btn)).setText("MATCHES");
+                if(matches.size() != 0) {
+                    if(!matches.get(0).contains("-"))
+                        findViewById(R.id.confirm_btn).setVisibility(View.GONE);
+                    else
+                        ((Button)findViewById(R.id.confirm_btn)).setText("MATCHES");
+                }
             });
             playersLayout.removeAllViews();
             for (int i = roundsFinished + 1; i >= 0; i--) {
