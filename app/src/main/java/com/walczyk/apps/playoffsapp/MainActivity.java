@@ -59,6 +59,10 @@ public class MainActivity extends AppCompatActivity {
             alert.setView(input);
             alert.setPositiveButton("ADD", (dialog, which) -> {
                 String playerName = input.getText().toString();
+                if(players.containsKey(playerName)) {
+                    Toast.makeText(this, "Player with this name already exists.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 players.put(playerName, 0);
 
                 playersData.setValue(players);
@@ -95,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
                     i++;
                 }
 
-                DatabaseReference newMatches = matchesData.child("0");;
+                DatabaseReference newMatches = matchesData.child("0");
                 newMatches.setValue(matches);
 
                 confirmButton.setText("MATCHES");
@@ -115,6 +119,7 @@ public class MainActivity extends AppCompatActivity {
 
             roundsFinished = 0;
             playersLayout.removeAllViews();
+            confirmButton.setVisibility(View.VISIBLE);
             confirmButton.setText("CONFIRM");
 
             swipeLayout.setRefreshing(false);
@@ -145,7 +150,7 @@ public class MainActivity extends AppCompatActivity {
             }
             int numberOfPlayers = players.size();
             int points = 0;
-            ArrayList<Integer> playerScores = new ArrayList<Integer>(players.values());
+            ArrayList<Integer> playerScores = new ArrayList<>(players.values());
             for(int i = 0; i < numberOfPlayers; i++)
                 points += playerScores.get(i);
 
@@ -163,8 +168,12 @@ public class MainActivity extends AppCompatActivity {
                 if(matchesHistory == null)
                     return;
                 matches = matchesHistory.get(matchesHistory.size() - 1);
-                if(matches.size() != 0)
-                    ((Button)findViewById(R.id.confirm_btn)).setText("MATCHES");
+                if(matches.size() != 0) {
+                    if(!matches.get(0).contains("-"))
+                        findViewById(R.id.confirm_btn).setVisibility(View.GONE);
+                    else
+                        ((Button)findViewById(R.id.confirm_btn)).setText("MATCHES");
+                }
             });
             playersLayout.removeAllViews();
             for (int i = roundsFinished + 1; i >= 0; i--) {
