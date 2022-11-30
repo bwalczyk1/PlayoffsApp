@@ -22,7 +22,6 @@ import java.util.ArrayList;
 public class MatchesActivity extends AppCompatActivity {
     private ArrayList<String> matches = new ArrayList<>();
     private ListView matchList;
-//    private HashMap<Integer, String> winners = new HashMap<>();
     private MatchAdapter matchAdapter;
     private DatabaseReference matchesData;
 

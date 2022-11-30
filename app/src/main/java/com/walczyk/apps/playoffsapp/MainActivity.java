@@ -59,7 +59,11 @@ public class MainActivity extends AppCompatActivity {
             alert.setView(input);
             alert.setPositiveButton("ADD", (dialog, which) -> {
                 String playerName = input.getText().toString();
-                if(players.containsKey(playerName)) {
+                if(playerName.equals("")){
+                    Toast.makeText(this, "Player's name cannot be empty.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                else if(players.containsKey(playerName)) {
                     Toast.makeText(this, "Player with this name already exists.", Toast.LENGTH_SHORT).show();
                     return;
                 }
